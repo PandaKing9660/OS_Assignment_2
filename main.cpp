@@ -1,19 +1,32 @@
 #include <ncurses.h>
 
-WINDOW *create_newwin(int height, int width, int startY, int startX);
+#define BACKGROUND_PAIR 1
+#define BIG_BOX_PAIR 2
+#define SMALL_BOX_PAIR 3
+#define SELECTED_BOX_PAIR 4
+#define TEXT_PAIR 5
+
+WINDOW *create_newwin(int height, int width, int startY, int startX, int f);
 void destroy_win(WINDOW *local_win);
 
 int main(int argc, char *argv[]) {
     // WINDOW *my_win;
     int startX, startY, tableWidth, tableHeight;
     int ch;
-    start_color();
     initscr(); /* Start curses mode 		*/
+    start_color();
     cbreak();             /* Line buffering disabled, Pass on
                            * everty thing to me 		*/
     keypad(stdscr, TRUE); /* I need that nifty F1 	*/
     getmaxyx(stdscr,tableHeight,tableWidth);
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    
+    init_pair(BACKGROUND_PAIR, COLOR_GREEN, COLOR_YELLOW);
+    init_pair(BIG_BOX_PAIR, COLOR_MAGENTA, COLOR_MAGENTA);
+    init_pair(SMALL_BOX_PAIR, COLOR_BLUE, COLOR_BLUE);
+    init_pair(SELECTED_BOX_PAIR, COLOR_CYAN, COLOR_CYAN);
+    init_pair(TEXT_PAIR, COLOR_RED, COLOR_WHITE);
+
+    wbkgd(initscr(), COLOR_PAIR(BACKGROUND_PAIR));
     tableHeight /= 2;
     tableWidth /= 2;
 
@@ -23,11 +36,10 @@ int main(int argc, char *argv[]) {
     printw("Press F1 to exit");
     refresh();
 
-    WINDOW *table = create_newwin(tableHeight + 4,tableWidth + 4,tableHeight/2-2,tableWidth/2-2);
+    WINDOW *table = create_newwin(tableHeight + 4,tableWidth + 4,tableHeight/2-2,tableWidth/2-2, 0);
     /*20 columns*/
 
     WINDOW *bigBox[4][5];
-
 
     int changeH = tableHeight / 4;
     int changeW = tableWidth / 5;
@@ -46,11 +58,10 @@ int main(int argc, char *argv[]) {
         fscanf(filePointerRead, "%d %d %d %d", &data[i][0], &data[i][1],
                &data[i][2], &data[i][3]);
     }
-
     for(int i=0;i<4;i++){
       int sumRow=0;
       for(int j=0;j<5;j++){
-        bigBox[i][j] = create_newwin(tableHeight/4,tableWidth/5,startY,startX);
+        bigBox[i][j] = create_newwin(tableHeight/4,tableWidth/5,startY,startX, 1);
         if (j != 4) {
             sumRow += data[i][j];
             mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d", data[i][j]);
@@ -67,8 +78,10 @@ int main(int argc, char *argv[]) {
     startY = tableHeight / 2; /* Calculating for a center placement */
     startX = tableWidth / 2;  /* of the window		*/
 
-    box(bigBox[selectedRow][selectedCol],65,65);
+    wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+    box(bigBox[selectedRow][selectedCol],124,45);
     wrefresh(bigBox[selectedRow][selectedCol]);
+    wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
     // my_win = create_newwin(tableHeight/4, tableWidth/5, startY, startX);
 
@@ -111,11 +124,13 @@ int main(int argc, char *argv[]) {
                   break;
                 }
                 move(startY + changeH / 2, startX + changeW / 2);
+                wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(TEXT_PAIR));
                 mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2, changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
-
                 char inp = getch();
 
+                
+                wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(TEXT_PAIR));
                 mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
                           changeW / 2, "%c", inp);
                 wrefresh(bigBox[selectedRow][selectedCol]);
@@ -129,7 +144,7 @@ int main(int argc, char *argv[]) {
         }
 
         table = create_newwin(tableHeight + 4, tableWidth + 4,
-                              tableHeight / 2 - 2, tableWidth / 2 - 2);
+                              tableHeight / 2 - 2, tableWidth / 2 - 2, 0);
         int tempX;
         int tempY;
         tempY = tableHeight / 2; /* Calculating for a center placement */
@@ -140,7 +155,7 @@ int main(int argc, char *argv[]) {
           int sumRow = 0;
             for (int j = 0; j < 5; j++) {
                 bigBox[i][j] = create_newwin(tableHeight / 4, tableWidth / 5,
-                                             tempY, tempX);
+                                             tempY, tempX, 1);
                 if(j!=4){
                   sumRow += data[i][j];
                   mvwprintw(bigBox[i][j], changeH / 2,changeW / 2, "%d", data[i][j]);
@@ -161,28 +176,30 @@ int main(int argc, char *argv[]) {
 
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
 
-        attron(COLOR_PAIR(1));
-        box(bigBox[selectedRow][selectedCol],88,88);
+        wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+        box(bigBox[selectedRow][selectedCol],124,45);
         wrefresh(bigBox[selectedRow][selectedCol]);
-        attroff(COLOR_PAIR(1));
+        wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
         move(startY + changeH / 2,startX + changeW / 2);
     }
-
-    
 
     endwin(); /* End curses mode		  */
     return 0;
 }
 
-WINDOW *create_newwin(int height, int width, int startY, int startX) {
+WINDOW *create_newwin(int height, int width, int startY, int startX, int f) {
     WINDOW *local_win;
-
     local_win = newwin(height, width, startY, startX);
+    if (f)
+        wattron(local_win, COLOR_PAIR(SMALL_BOX_PAIR));
+    else
+        wattron(local_win, COLOR_PAIR(BIG_BOX_PAIR));
     box(local_win, 0, 0); /* 0, 0 gives default characters
                            * for the vertical and horizontal
                            * lines			*/
     wrefresh(local_win);  /* Show that box 		*/
+    wattroff(local_win, COLOR_PAIR(BIG_BOX_PAIR));
 
     return local_win;
 }
