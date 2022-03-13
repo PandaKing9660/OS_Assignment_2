@@ -107,6 +107,9 @@ int main(int argc, char *argv[]) {
                 }
                 break;
             case (int)'\n':
+                if(selectedCol==4){
+                  break;
+                }
                 move(startY + changeH / 2, startX + changeW / 2);
                 mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2, changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
