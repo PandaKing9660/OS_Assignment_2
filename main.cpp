@@ -1,18 +1,26 @@
 #include <ncurses.h>
 
-WINDOW *create_newwin(int height, int width, int startY, int startX);
+#include <string>
+
+using namespace std;
+
+WINDOW *create_newwin(int height, int width, int startY, int startX,
+                      bool headerOn);
 void destroy_win(WINDOW *local_win);
+void display_table_header(WINDOW *win, int starty, int startx, int width,
+                          string &label);
+void showhelp(WINDOW *winOriginal);
 
 int main(int argc, char *argv[]) {
     // WINDOW *my_win;
     int startX, startY, tableWidth, tableHeight;
     int ch;
     start_color();
-    initscr(); /* Start curses mode 		*/
+    initscr();            /* Start curses mode 		*/
     cbreak();             /* Line buffering disabled, Pass on
                            * everty thing to me 		*/
     keypad(stdscr, TRUE); /* I need that nifty F1 	*/
-    getmaxyx(stdscr,tableHeight,tableWidth);
+    getmaxyx(stdscr, tableHeight, tableWidth);
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     tableHeight /= 2;
     tableWidth /= 2;
@@ -20,21 +28,31 @@ int main(int argc, char *argv[]) {
     tableHeight = 4 * (tableHeight / 4);
     tableWidth = 5 * (tableWidth / 5);
 
-    printw("Press F1 to exit");
+    printw("Hello Beautiful ;)\n");
+    // addstr("Press F2 for help\n");
+
     refresh();
 
-    WINDOW *table = create_newwin(tableHeight + 4,tableWidth + 4,tableHeight/2-2,tableWidth/2-2);
-    /*20 columns*/
+    int heightOffset = 8, widthOffset = 4;
+    WINDOW *table = create_newwin(
+        tableHeight + heightOffset, tableWidth + widthOffset,
+        (tableHeight - heightOffset) / 2, (tableWidth - widthOffset) / 2, true);
+    if (table == NULL) {
+        endwin();
+        printf("Unable to allocate window memory to table. Exiting.\n");
+        return (EXIT_FAILURE);
+    }
 
+    /*20 columns = 4 students x (4 marks + 1 total)*/
     WINDOW *bigBox[4][5];
-
 
     int changeH = tableHeight / 4;
     int changeW = tableWidth / 5;
-    startY = tableHeight/2; /* Calculating for a center placement */
-    startX = tableWidth/2;   /* of the window		*/
+    /* Calculating for a center placement of the window		*/
+    startY = (tableHeight + heightOffset / 2) / 2;
+    startX = tableWidth / 2;
     int selectedRow = 0, selectedCol = 0;
-    
+
     FILE *filePointerRead;
     FILE *filePointerWrite;
 
@@ -42,76 +60,85 @@ int main(int argc, char *argv[]) {
 
     int data[4][4];
 
-    for(int i=0;i<4;i++){
+    for (int i = 0; i < 4; i++) {
         fscanf(filePointerRead, "%d %d %d %d", &data[i][0], &data[i][1],
                &data[i][2], &data[i][3]);
     }
 
-    for(int i=0;i<4;i++){
-      int sumRow=0;
-      for(int j=0;j<5;j++){
-        bigBox[i][j] = create_newwin(tableHeight/4,tableWidth/5,startY,startX);
-        if (j != 4) {
-            sumRow += data[i][j];
-            mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d", data[i][j]);
-        } else {
-            mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d", sumRow);
+    for (int i = 0; i < 4; i++) {
+        int sumRow = 0;
+        for (int j = 0; j < 5; j++) {
+            bigBox[i][j] = create_newwin(tableHeight / 4, tableWidth / 5,
+                                         startY, startX, false);
+            if (j != 4) {
+                sumRow += data[i][j];
+                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
+                          data[i][j]);
+            } else {
+                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
+                          sumRow);  // -1 for center allign
+            }
+            wrefresh(bigBox[i][j]);
+            startX += changeW;
         }
-        wrefresh(bigBox[i][j]);
-        startX += changeW;
-      }
-      startY += changeH;
-      startX = tableWidth/2;
+        startY += changeH;
+        startX = tableWidth / 2;
     }
 
-    startY = tableHeight / 2; /* Calculating for a center placement */
-    startX = tableWidth / 2;  /* of the window		*/
+    /* Calculating for a center placement of the window		*/
+    startY = (tableHeight + heightOffset / 2) / 2;
+    startX = tableWidth / 2;
 
-    box(bigBox[selectedRow][selectedCol],65,65);
+    box(bigBox[selectedRow][selectedCol], 88, 88);
     wrefresh(bigBox[selectedRow][selectedCol]);
 
     // my_win = create_newwin(tableHeight/4, tableWidth/5, startY, startX);
 
     while ((ch = getch()) != KEY_F(1)) {
         switch (ch) {
-            case KEY_LEFT:
+            case KEY_LEFT: {
                 startX -= changeW;
-                selectedCol --;
-                if(startX < tableWidth/2){
-                  startX += changeW;
-                  selectedCol ++;
+                selectedCol--;
+                if (startX < tableWidth / 2) {
+                    startX += changeW;
+                    selectedCol++;
                 }
                 break;
-            case KEY_RIGHT:
+            }
+            case KEY_RIGHT: {
                 startX += changeW;
-                selectedCol ++;
+                selectedCol++;
                 if (startX >= 3 * tableWidth / 2) {
                     startX -= changeW;
-                    selectedCol --;
+                    selectedCol--;
                 }
                 break;
-            case KEY_UP:
+            }
+            case KEY_UP: {
                 startY -= changeH;
-                selectedRow --;
+                selectedRow--;
                 if (startY < tableHeight / 2) {
                     startY += changeH;
-                    selectedRow ++;
+                    selectedRow++;
                 }
                 break;
-            case KEY_DOWN:
+            }
+            case KEY_DOWN: {
                 startY += changeH;
-                selectedRow ++;
+                selectedRow++;
                 if (startY >= 3 * tableHeight / 2) {
                     startY -= changeH;
-                    selectedRow --;
+                    selectedRow--;
                 }
                 break;
-            case (int)'\n':
-                if(selectedCol==4){
-                  break;
+            }
+            case (int)'\n': {
+                if (selectedCol == 4) {
+                    break;
                 }
                 move(startY + changeH / 2, startX + changeW / 2);
-                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2, changeW / 2, " ");
+                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
+                          changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
 
                 char inp = getch();
@@ -120,32 +147,44 @@ int main(int argc, char *argv[]) {
                           changeW / 2, "%c", inp);
                 wrefresh(bigBox[selectedRow][selectedCol]);
                 char inp2 = getch();
-                if(inp2 == '\n'){
-                  if(inp>='0' && inp<= '9'){
-                    data[selectedRow][selectedCol] = inp - '0';
-                  }
+                if (inp2 == '\n') {
+                    if (inp >= '0' && inp <= '9') {
+                        data[selectedRow][selectedCol] = inp - '0';
+                    }
                 }
                 break;
+            }
+            case KEY_F(2): {
+                showhelp(stdscr);
+                break;
+            }
         }
 
-        table = create_newwin(tableHeight + 4, tableWidth + 4,
-                              tableHeight / 2 - 2, tableWidth / 2 - 2);
+        // remake table after movement
+        table =
+            create_newwin(tableHeight + heightOffset, tableWidth + widthOffset,
+                          (tableHeight - heightOffset) / 2,
+                          (tableWidth - widthOffset) / 2, true);
+
         int tempX;
         int tempY;
-        tempY = tableHeight / 2; /* Calculating for a center placement */
-        tempX = tableWidth / 2;  /* of the window		*/
-
+        /* Calculating for a center placement of the window		*/
+        tempY = (tableHeight + heightOffset / 2) / 2;
+        tempX = tableWidth / 2;
+        
         filePointerWrite = fopen("database1.txt", "a");
         for (int i = 0; i < 4; i++) {
-          int sumRow = 0;
+            int sumRow = 0;
             for (int j = 0; j < 5; j++) {
                 bigBox[i][j] = create_newwin(tableHeight / 4, tableWidth / 5,
-                                             tempY, tempX);
-                if(j!=4){
-                  sumRow += data[i][j];
-                  mvwprintw(bigBox[i][j], changeH / 2,changeW / 2, "%d", data[i][j]);
-                } else {
+                                             tempY, tempX, false);
+                if (j != 4) {
+                    sumRow += data[i][j];
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
+                              data[i][j]);
+                } else {
+                    // -1 for two digit center allign
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
                               sumRow);
                 }
                 wrefresh(bigBox[i][j]);
@@ -153,8 +192,8 @@ int main(int argc, char *argv[]) {
             }
 
             fprintf(filePointerWrite, "%d %d %d %d\n", data[i][0], data[i][1],
-                        data[i][2], data[i][3]);
-            
+                    data[i][2], data[i][3]);
+
             tempY += changeH;
             tempX = tableWidth / 2;
         }
@@ -162,27 +201,33 @@ int main(int argc, char *argv[]) {
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
 
         attron(COLOR_PAIR(1));
-        box(bigBox[selectedRow][selectedCol],88,88);
+        box(bigBox[selectedRow][selectedCol], 88, 88);
         wrefresh(bigBox[selectedRow][selectedCol]);
         attroff(COLOR_PAIR(1));
 
-        move(startY + changeH / 2,startX + changeW / 2);
+        move(startY + changeH / 2, startX + changeW / 2);
     }
-
-    
 
     endwin(); /* End curses mode		  */
     return 0;
 }
 
-WINDOW *create_newwin(int height, int width, int startY, int startX) {
+WINDOW *create_newwin(int height, int width, int startY, int startX,
+                      bool headerOn) {
     WINDOW *local_win;
 
     local_win = newwin(height, width, startY, startX);
     box(local_win, 0, 0); /* 0, 0 gives default characters
                            * for the vertical and horizontal
                            * lines			*/
-    wrefresh(local_win);  /* Show that box 		*/
+    if (headerOn) {
+        string label = "STUDENT DATABASE RECORD";
+        display_table_header(local_win, 1, 0, width, label);
+        label = "Navigate[Arrow] | Edit[Enter] | Help[F2] | Exit[F1]";
+        display_table_header(local_win, 4, 0, width, label);
+    }
+
+    wrefresh(local_win); /* Show that box 		*/
 
     return local_win;
 }
@@ -208,3 +253,80 @@ void destroy_win(WINDOW *local_win) {
     delwin(local_win);
 }
 
+/**
+ * @brief adds header text (aligned centerally) and border to a window
+ *
+ * @param win
+ * @param starty
+ * @param startx
+ * @param width
+ * @param label
+ */
+void display_table_header(WINDOW *win, int starty, int startx, int width,
+                          string &label) {
+    init_pair(2, COLOR_CYAN, COLOR_RED);
+    int length, x, y;
+    float temp;
+
+    // set stdscr as default if error in win
+    if (win == NULL) win = stdscr;
+    // center positioning
+    getyx(win, y, x);
+    if (startx != 0) x = startx;
+    if (starty != 0) y = starty;
+    if (width == 0) width = 80;
+
+    length = label.size();
+    temp = (width - length) / 2;
+    x = startx + (int)temp;
+    wattron(win, COLOR_PAIR(2));
+    mvwprintw(win, y, x, "%s", label.c_str()); // add header text
+    wattroff(win, COLOR_PAIR(2));
+
+    // add horizontal division line
+    mvwaddch(win, starty + 2, 0, ACS_LTEE);
+    mvwhline(win, starty + 2, 1, ACS_HLINE, width - 2);
+    mvwaddch(win, starty + 2, width - 1, ACS_RTEE);
+    refresh();
+}
+
+/**
+ * @brief displays the Help toggle window for all the info
+ *
+ * @param winOriginal
+ */
+void showhelp(WINDOW *winOriginal) {
+    int width, height;
+    getmaxyx(stdscr, height, width);  // get height width of stdscr
+    width /= 2;
+    height /= 1.2;
+
+    // create window positioned center by width only
+    WINDOW *winHelp = newwin(height, width, 0, width / 2);
+    box(winHelp, (int)'|', (int)'*');
+
+    // menu labels
+    string label[] = {"    HELP MENU    ",
+                      "Arrow Keys: Navigation",
+                      "F1: Exit Pgm",
+                      "Enter: Edit Data",
+                      "Enter: Save edited data",
+                      "Press ANY key to exit help"};
+    int size = sizeof(label) / sizeof(label[0]);
+    // display menu items on screen
+    int i = 0;
+    display_table_header(winHelp, i * 3, 0, width, label[i]);
+    for (i = 1; i < size; i++) {
+        string tmplabel = "(" + to_string(i) + ") " + label[i];
+        display_table_header(winHelp, i * 3, 0, width, tmplabel);
+    }
+
+    // update the screen to show help menu
+    touchwin(winHelp);
+    wrefresh(winHelp);
+    getch();                // wait for keypress
+    touchwin(winOriginal);  // get back to original window
+
+    refresh();
+    wrefresh(winOriginal);
+}
