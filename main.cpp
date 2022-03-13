@@ -1,8 +1,14 @@
 #include <ncurses.h>
-
 #include <string>
 
 using namespace std;
+
+#define BACKGROUND_PAIR 1
+#define BIG_BOX_PAIR 2
+#define SMALL_BOX_PAIR 3
+#define SELECTED_BOX_PAIR 4
+#define TEXT_PAIR 5
+
 
 WINDOW *create_newwin(int height, int width, int startY, int startX,
                       bool headerOn);
@@ -15,13 +21,20 @@ int main(int argc, char *argv[]) {
     // WINDOW *my_win;
     int startX, startY, tableWidth, tableHeight;
     int ch;
-    start_color();
     initscr();            /* Start curses mode 		*/
+    start_color();
     cbreak();             /* Line buffering disabled, Pass on
                            * everty thing to me 		*/
     keypad(stdscr, TRUE); /* I need that nifty F1 	*/
     getmaxyx(stdscr, tableHeight, tableWidth);
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    init_pair(BACKGROUND_PAIR, COLOR_GREEN, COLOR_YELLOW);
+    init_pair(BIG_BOX_PAIR, COLOR_MAGENTA, COLOR_MAGENTA);
+    init_pair(SMALL_BOX_PAIR, COLOR_BLUE, COLOR_BLUE);
+    init_pair(SELECTED_BOX_PAIR, COLOR_CYAN, COLOR_CYAN);
+    init_pair(TEXT_PAIR, COLOR_RED, COLOR_WHITE);
+    wbkgd(initscr(), COLOR_PAIR(BACKGROUND_PAIR));
+
     tableHeight /= 2;
     tableWidth /= 2;
 
@@ -88,9 +101,11 @@ int main(int argc, char *argv[]) {
     /* Calculating for a center placement of the window		*/
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
-
-    box(bigBox[selectedRow][selectedCol], 88, 88);
+    
+    wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+    box(bigBox[selectedRow][selectedCol],124,45);
     wrefresh(bigBox[selectedRow][selectedCol]);
+    wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
     // my_win = create_newwin(tableHeight/4, tableWidth/5, startY, startX);
 
@@ -133,24 +148,25 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case (int)'\n': {
-                if (selectedCol == 4) {
-                    break;
+                 if(selectedCol==4){
+                  break;
                 }
                 move(startY + changeH / 2, startX + changeW / 2);
-                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
-                          changeW / 2, " ");
+                wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(TEXT_PAIR));
+                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2, changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
-
                 char inp = getch();
 
+                
+                wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(TEXT_PAIR));
                 mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
                           changeW / 2, "%c", inp);
                 wrefresh(bigBox[selectedRow][selectedCol]);
                 char inp2 = getch();
-                if (inp2 == '\n') {
-                    if (inp >= '0' && inp <= '9') {
-                        data[selectedRow][selectedCol] = inp - '0';
-                    }
+                if(inp2 == '\n'){
+                  if(inp>='0' && inp<= '9'){
+                    data[selectedRow][selectedCol] = inp - '0';
+                  }
                 }
                 break;
             }
@@ -200,10 +216,10 @@ int main(int argc, char *argv[]) {
 
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
 
-        attron(COLOR_PAIR(1));
-        box(bigBox[selectedRow][selectedCol], 88, 88);
+        wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+        box(bigBox[selectedRow][selectedCol],124,45);
         wrefresh(bigBox[selectedRow][selectedCol]);
-        attroff(COLOR_PAIR(1));
+        wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
         move(startY + changeH / 2, startX + changeW / 2);
     }
@@ -221,13 +237,19 @@ WINDOW *create_newwin(int height, int width, int startY, int startX,
                            * for the vertical and horizontal
                            * lines			*/
     if (headerOn) {
+        wattron(local_win, COLOR_PAIR(BIG_BOX_PAIR));
+        
         string label = "STUDENT DATABASE RECORD";
         display_table_header(local_win, 1, 0, width, label);
         label = "Navigate[Arrow] | Edit[Enter] | Help[F2] | Exit[F1]";
         display_table_header(local_win, 4, 0, width, label);
     }
+    else{
+        wattron(local_win, COLOR_PAIR(SMALL_BOX_PAIR));
+    }
 
     wrefresh(local_win); /* Show that box 		*/
+    wattroff(local_win, COLOR_PAIR(BIG_BOX_PAIR));
 
     return local_win;
 }
@@ -330,3 +352,4 @@ void showhelp(WINDOW *winOriginal) {
     refresh();
     wrefresh(winOriginal);
 }
+
