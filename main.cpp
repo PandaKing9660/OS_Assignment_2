@@ -4,7 +4,7 @@ WINDOW *create_newwin(int height, int width, int startY, int startX);
 void destroy_win(WINDOW *local_win);
 
 int main(int argc, char *argv[]) {
-    WINDOW *my_win;
+    // WINDOW *my_win;
     int startX, startY, tableWidth, tableHeight;
     int ch;
     start_color();
@@ -33,11 +33,31 @@ int main(int argc, char *argv[]) {
     int changeW = tableWidth / 5;
     startY = tableHeight/2; /* Calculating for a center placement */
     startX = tableWidth/2;   /* of the window		*/
+    int selectedRow = 0, selectedCol = 0;
+    
+    FILE *filePointerRead;
+    FILE *filePointerWrite;
 
+    filePointerRead = fopen("database.txt", "r");
+
+    int data[4][4];
 
     for(int i=0;i<4;i++){
+        fscanf(filePointerRead, "%d %d %d %d", &data[i][0], &data[i][1],
+               &data[i][2], &data[i][3]);
+    }
+
+    for(int i=0;i<4;i++){
+      int sumRow=0;
       for(int j=0;j<5;j++){
         bigBox[i][j] = create_newwin(tableHeight/4,tableWidth/5,startY,startX);
+        if (j != 4) {
+            sumRow += data[i][j];
+            mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d", data[i][j]);
+        } else {
+            mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d", sumRow);
+        }
+        wrefresh(bigBox[i][j]);
         startX += changeW;
       }
       startY += changeH;
@@ -47,46 +67,64 @@ int main(int argc, char *argv[]) {
     startY = tableHeight / 2; /* Calculating for a center placement */
     startX = tableWidth / 2;  /* of the window		*/
 
-    my_win = create_newwin(tableHeight/4, tableWidth/5, startY, startX);
+    box(bigBox[selectedRow][selectedCol],65,65);
+    wrefresh(bigBox[selectedRow][selectedCol]);
+
+    // my_win = create_newwin(tableHeight/4, tableWidth/5, startY, startX);
 
     while ((ch = getch()) != KEY_F(1)) {
         switch (ch) {
             case KEY_LEFT:
                 startX -= changeW;
+                selectedCol --;
                 if(startX < tableWidth/2){
                   startX += changeW;
+                  selectedCol ++;
                 }
                 break;
             case KEY_RIGHT:
                 startX += changeW;
+                selectedCol ++;
                 if (startX >= 3 * tableWidth / 2) {
                     startX -= changeW;
+                    selectedCol --;
                 }
                 break;
             case KEY_UP:
                 startY -= changeH;
+                selectedRow --;
                 if (startY < tableHeight / 2) {
                     startY += changeH;
+                    selectedRow ++;
                 }
                 break;
             case KEY_DOWN:
                 startY += changeH;
+                selectedRow ++;
                 if (startY >= 3 * tableHeight / 2) {
                     startY -= changeH;
+                    selectedRow --;
                 }
                 break;
             case (int)'\n':
                 move(startY + changeH / 2, startX + changeW / 2);
-                mvwprintw(my_win, changeH / 2, changeW / 2, " ");
+                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2, changeW / 2, " ");
+                wrefresh(bigBox[selectedRow][selectedCol]);
 
                 char inp = getch();
-                
-                mvwprintw(my_win, changeH / 2, changeW / 2, "%c",inp);
-                getch();
+
+                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
+                          changeW / 2, "%c", inp);
+                wrefresh(bigBox[selectedRow][selectedCol]);
+                char inp2 = getch();
+                if(inp2 == '\n'){
+                  if(inp>='0' && inp<= '9'){
+                    data[selectedRow][selectedCol] = inp - '0';
+                  }
+                }
                 break;
         }
 
-        destroy_win(my_win);
         table = create_newwin(tableHeight + 4, tableWidth + 4,
                               tableHeight / 2 - 2, tableWidth / 2 - 2);
         int tempX;
@@ -94,25 +132,41 @@ int main(int argc, char *argv[]) {
         tempY = tableHeight / 2; /* Calculating for a center placement */
         tempX = tableWidth / 2;  /* of the window		*/
 
+        filePointerWrite = fopen("database1.txt", "a");
         for (int i = 0; i < 4; i++) {
+          int sumRow = 0;
             for (int j = 0; j < 5; j++) {
                 bigBox[i][j] = create_newwin(tableHeight / 4, tableWidth / 5,
                                              tempY, tempX);
+                if(j!=4){
+                  sumRow += data[i][j];
+                  mvwprintw(bigBox[i][j], changeH / 2,changeW / 2, "%d", data[i][j]);
+                } else {
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
+                              sumRow);
+                }
+                wrefresh(bigBox[i][j]);
                 tempX += changeW;
             }
+
+            fprintf(filePointerWrite, "%d %d %d %d\n", data[i][0], data[i][1],
+                        data[i][2], data[i][3]);
+            
             tempY += changeH;
             tempX = tableWidth / 2;
         }
-        my_win = create_newwin(tableHeight / 4, tableWidth / 5, startY, startX);
-        wbkgd(my_win,COLOR_PAIR(1));
+
+        wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
 
         attron(COLOR_PAIR(1));
-        mvwprintw(my_win, changeH / 2, changeW / 2, "3");
-        wrefresh(my_win);
+        box(bigBox[selectedRow][selectedCol],88,88);
+        wrefresh(bigBox[selectedRow][selectedCol]);
         attroff(COLOR_PAIR(1));
 
         move(startY + changeH / 2,startX + changeW / 2);
     }
+
+    
 
     endwin(); /* End curses mode		  */
     return 0;
