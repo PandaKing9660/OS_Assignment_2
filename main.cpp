@@ -1,4 +1,5 @@
 #include <ncurses.h>
+
 #include <string>
 
 using namespace std;
@@ -9,7 +10,6 @@ using namespace std;
 #define SELECTED_BOX_PAIR 4
 #define TEXT_PAIR 5
 
-
 WINDOW *create_newwin(int height, int width, int startY, int startX,
                       bool headerOn);
 void destroy_win(WINDOW *local_win);
@@ -18,14 +18,14 @@ void display_table_header(WINDOW *win, int starty, int startx, int width,
 void showhelp(WINDOW *winOriginal);
 
 int main(int argc, char *argv[]) {
-    // WINDOW *my_win;
     int startX, startY, tableWidth, tableHeight;
     int ch;
-    initscr();            /* Start curses mode 		*/
+    initscr();            // Start curses mode
     start_color();
-    cbreak();             /* Line buffering disabled, Pass on
-                           * everty thing to me 		*/
-    keypad(stdscr, TRUE); /* I need that nifty F1 	*/
+    cbreak();             // Line buffering disabled
+    
+    // for getting keypad inputs
+    keypad(stdscr, TRUE);
     getmaxyx(stdscr, tableHeight, tableWidth);
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(BACKGROUND_PAIR, COLOR_GREEN, COLOR_YELLOW);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     init_pair(SMALL_BOX_PAIR, COLOR_BLUE, COLOR_BLUE);
     init_pair(SELECTED_BOX_PAIR, COLOR_CYAN, COLOR_CYAN);
     init_pair(TEXT_PAIR, COLOR_RED, COLOR_WHITE);
-    wbkgd(initscr(), COLOR_PAIR(BACKGROUND_PAIR));
+    // wbkgd(initscr(), COLOR_PAIR(BACKGROUND_PAIR));
 
     tableHeight /= 2;
     tableWidth /= 2;
@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     tableHeight = 4 * (tableHeight / 4);
     tableWidth = 5 * (tableWidth / 5);
 
-    printw("Hello Beautiful ;)\n");
+    mvprintw(1, 1, "Hello Beautiful ;)\n");
     // addstr("Press F2 for help\n");
 
     refresh();
@@ -56,12 +56,13 @@ int main(int argc, char *argv[]) {
         return (EXIT_FAILURE);
     }
 
-    /*20 columns = 4 students x (4 marks + 1 total)*/
-    WINDOW *bigBox[4][5];
+    // 20 columns = 4 students x (4 marks + 1 total)
+    const int tableRows = 4, tableCols = 5;
+    WINDOW *bigBox[tableRows][tableCols];
 
-    int changeH = tableHeight / 4;
-    int changeW = tableWidth / 5;
-    /* Calculating for a center placement of the window		*/
+    int changeH = tableHeight / tableRows;
+    int changeW = tableWidth / tableCols;
+    // Calculating for a center placement of the window
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
     int selectedRow = 0, selectedCol = 0;
@@ -71,19 +72,20 @@ int main(int argc, char *argv[]) {
 
     filePointerRead = fopen("database.txt", "r");
 
-    int data[4][4];
+    int data[tableRows][tableCols - 1];  // 4x4 for holding number data
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < tableRows; i++) {
         fscanf(filePointerRead, "%d %d %d %d", &data[i][0], &data[i][1],
                &data[i][2], &data[i][3]);
     }
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < tableRows; i++) {
         int sumRow = 0;
-        for (int j = 0; j < 5; j++) {
-            bigBox[i][j] = create_newwin(tableHeight / 4, tableWidth / 5,
-                                         startY, startX, false);
-            if (j != 4) {
+        for (int j = 0; j < tableCols; j++) {
+            bigBox[i][j] =
+                create_newwin(tableHeight / tableRows, tableWidth / tableCols,
+                              startY, startX, false);
+            if (j != tableCols-1) {
                 sumRow += data[i][j];
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
                           data[i][j]);
@@ -98,12 +100,12 @@ int main(int argc, char *argv[]) {
         startX = tableWidth / 2;
     }
 
-    /* Calculating for a center placement of the window		*/
+    // Calculating for a center placement of the window
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
-    
+
     wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
-    box(bigBox[selectedRow][selectedCol],124,45);
+    box(bigBox[selectedRow][selectedCol], 124, 45);
     wrefresh(bigBox[selectedRow][selectedCol]);
     wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
@@ -148,25 +150,27 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case (int)'\n': {
-                 if(selectedCol==4){
-                  break;
+                if (selectedCol == tableCols) {
+                    break;
                 }
                 move(startY + changeH / 2, startX + changeW / 2);
-                wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(TEXT_PAIR));
-                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2, changeW / 2, " ");
+                wattron(bigBox[selectedRow][selectedCol],
+                        COLOR_PAIR(TEXT_PAIR));
+                mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
+                          changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
                 char inp = getch();
 
-                
-                wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(TEXT_PAIR));
+                wattron(bigBox[selectedRow][selectedCol],
+                        COLOR_PAIR(TEXT_PAIR));
                 mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
                           changeW / 2, "%c", inp);
                 wrefresh(bigBox[selectedRow][selectedCol]);
                 char inp2 = getch();
-                if(inp2 == '\n'){
-                  if(inp>='0' && inp<= '9'){
-                    data[selectedRow][selectedCol] = inp - '0';
-                  }
+                if (inp2 == '\n') {
+                    if (inp >= '0' && inp <= '9') {
+                        data[selectedRow][selectedCol] = inp - '0';
+                    }
                 }
                 break;
             }
@@ -184,17 +188,17 @@ int main(int argc, char *argv[]) {
 
         int tempX;
         int tempY;
-        /* Calculating for a center placement of the window		*/
+        // Calculating for a center placement of the window
         tempY = (tableHeight + heightOffset / 2) / 2;
         tempX = tableWidth / 2;
-        
-        filePointerWrite = fopen("database1.txt", "a");
-        for (int i = 0; i < 4; i++) {
+
+        filePointerWrite = fopen("database1.txt", "w");
+        for (int i = 0; i < tableRows; i++) {
             int sumRow = 0;
-            for (int j = 0; j < 5; j++) {
-                bigBox[i][j] = create_newwin(tableHeight / 4, tableWidth / 5,
+            for (int j = 0; j < tableCols; j++) {
+                bigBox[i][j] = create_newwin(tableHeight / tableRows, tableWidth / tableCols,
                                              tempY, tempX, false);
-                if (j != 4) {
+                if (j != tableCols-1) {
                     sumRow += data[i][j];
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
                               data[i][j]);
@@ -216,15 +220,17 @@ int main(int argc, char *argv[]) {
 
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
 
-        wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
-        box(bigBox[selectedRow][selectedCol],124,45);
+        wattron(bigBox[selectedRow][selectedCol],
+                COLOR_PAIR(SELECTED_BOX_PAIR));
+        box(bigBox[selectedRow][selectedCol], 124, 45);
         wrefresh(bigBox[selectedRow][selectedCol]);
-        wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+        wattroff(bigBox[selectedRow][selectedCol],
+                 COLOR_PAIR(SELECTED_BOX_PAIR));
 
         move(startY + changeH / 2, startX + changeW / 2);
     }
 
-    endwin(); /* End curses mode		  */
+    endwin();           // End curses mode
     return 0;
 }
 
@@ -238,13 +244,13 @@ WINDOW *create_newwin(int height, int width, int startY, int startX,
                            * lines			*/
     if (headerOn) {
         wattron(local_win, COLOR_PAIR(BIG_BOX_PAIR));
-        
+
         string label = "STUDENT DATABASE RECORD";
         display_table_header(local_win, 1, 0, width, label);
-        label = "Navigate[Arrow] | Edit[Enter] | Help[F2] | Exit[F1]";
+        label = "Move | Edit | Exit | Help[F2]";
         display_table_header(local_win, 4, 0, width, label);
-    }
-    else{
+
+    } else {
         wattron(local_win, COLOR_PAIR(SMALL_BOX_PAIR));
     }
 
@@ -302,7 +308,7 @@ void display_table_header(WINDOW *win, int starty, int startx, int width,
     temp = (width - length) / 2;
     x = startx + (int)temp;
     wattron(win, COLOR_PAIR(2));
-    mvwprintw(win, y, x, "%s", label.c_str()); // add header text
+    mvwprintw(win, y, x, "%s", label.c_str());  // add header text
     wattroff(win, COLOR_PAIR(2));
 
     // add horizontal division line
@@ -352,4 +358,3 @@ void showhelp(WINDOW *winOriginal) {
     refresh();
     wrefresh(winOriginal);
 }
-
