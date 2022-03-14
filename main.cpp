@@ -31,10 +31,11 @@ int main(int argc, char *argv[]) {
     // for getting keypad inputs
     keypad(stdscr, TRUE);
     getmaxyx(stdscr, tableHeight, tableWidth);
+
     init_pair(1, COLOR_WHITE, COLOR_BLACK);
-    init_pair(BACKGROUND_PAIR, COLOR_GREEN, COLOR_YELLOW);
-    init_pair(BIG_BOX_PAIR, COLOR_MAGENTA, COLOR_MAGENTA);
-    init_pair(SMALL_BOX_PAIR, COLOR_BLUE, COLOR_BLUE);
+    init_pair(BACKGROUND_PAIR, COLOR_GREEN, COLOR_BLACK);
+    init_pair(BIG_BOX_PAIR, COLOR_BLUE, COLOR_BLACK);
+    init_pair(SMALL_BOX_PAIR, COLOR_WHITE, COLOR_BLACK);
     init_pair(SELECTED_BOX_PAIR, COLOR_CYAN, COLOR_CYAN);
     init_pair(TEXT_PAIR, COLOR_RED, COLOR_WHITE);
     // wbkgd(initscr(), COLOR_PAIR(BACKGROUND_PAIR));
@@ -74,6 +75,11 @@ int main(int argc, char *argv[]) {
     int changeH = tableHeight / tableRows;
     int changeW = tableWidth / tableCols;
     // Calculating for a center placement of the window
+
+    WINDOW *panel = create_newwin(
+        3, tableWidth + widthOffset + 2,
+        tableHeight + 11, 3, false);
+
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
     int selectedRow = 0, selectedCol = 0;
@@ -135,6 +141,15 @@ int main(int argc, char *argv[]) {
         startX = tableWidth / 2;
     }
 
+    // Instruction Panel Initial
+    string panel_row = "Row no: ";
+    string panel_col = " Column no: ";
+    string panel_edit_on = "     EDIT MODE  ";
+    string panel_edit_off = "     NORMAL MODE";
+    string panel_info = panel_row + to_string(selectedRow) + panel_col + to_string(selectedCol) + panel_edit_off;
+    mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
+    wrefresh(panel);
+    
     // Calculating for a center placement of the window
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
@@ -194,6 +209,11 @@ int main(int argc, char *argv[]) {
                 mvwprintw(bigBox[selectedRow][selectedCol], changeH / 2,
                           changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
+
+                panel_info = panel_row + to_string(selectedRow) + panel_col + to_string(selectedCol) + panel_edit_on;
+                mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
+                wrefresh(panel);
+
                 char inp = getch();
 
                 wattron(bigBox[selectedRow][selectedCol],
@@ -216,6 +236,10 @@ int main(int argc, char *argv[]) {
                 break;
             }
         }
+
+        panel_info = panel_row + to_string(selectedRow) + panel_col + to_string(selectedCol) + panel_edit_off;
+        mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
+        wrefresh(panel);
 
         // remake table after movement
         table =
@@ -286,10 +310,8 @@ int main(int argc, char *argv[]) {
         fout.close();
 
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
-
-        wattron(bigBox[selectedRow][selectedCol],
-                COLOR_PAIR(SELECTED_BOX_PAIR));
-        box(bigBox[selectedRow][selectedCol], 124, 45);
+        wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+        box(bigBox[selectedRow][selectedCol],124,45);
         wrefresh(bigBox[selectedRow][selectedCol]);
         wattroff(bigBox[selectedRow][selectedCol],
                  COLOR_PAIR(SELECTED_BOX_PAIR));
@@ -359,7 +381,7 @@ void destroy_win(WINDOW *local_win) {
  */
 void display_table_header(WINDOW *win, int starty, int startx, int width,
                           string &label) {
-    init_pair(2, COLOR_CYAN, COLOR_RED);
+    init_pair(2, COLOR_WHITE, COLOR_RED);
     int length, x, y;
     float temp;
 
