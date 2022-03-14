@@ -1,6 +1,10 @@
 #include <ncurses.h>
 
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -20,10 +24,10 @@ void showhelp(WINDOW *winOriginal);
 int main(int argc, char *argv[]) {
     int startX, startY, tableWidth, tableHeight;
     int ch;
-    initscr();            // Start curses mode
+    initscr();  // Start curses mode
     start_color();
-    cbreak();             // Line buffering disabled
-    
+    cbreak();  // Line buffering disabled
+
     // for getting keypad inputs
     keypad(stdscr, TRUE);
     getmaxyx(stdscr, tableHeight, tableWidth);
@@ -56,8 +60,15 @@ int main(int argc, char *argv[]) {
         return (EXIT_FAILURE);
     }
 
-    // 20 columns = 4 students x (4 marks + 1 total)
-    const int tableRows = 4, tableCols = 5;
+    // 20 columns = 4 students x (4 marks + 1 total) updates realtime database
+    /*
+        .  A B C D Total
+        S1 2 3 4 1  9
+        S2 2 7 6 2  10
+        S3 7 5 4 8  12
+        S4 4 7 9 9  25
+    */
+    const int tableRows = 5, tableCols = 6;
     WINDOW *bigBox[tableRows][tableCols];
 
     int changeH = tableHeight / tableRows;
@@ -67,17 +78,28 @@ int main(int argc, char *argv[]) {
     startX = tableWidth / 2;
     int selectedRow = 0, selectedCol = 0;
 
-    FILE *filePointerRead;
-    FILE *filePointerWrite;
+    string fname = "database.txt";
+    vector<vector<string>> data;
+    vector<string> inputRow;
+    string line, word;
 
-    filePointerRead = fopen("database.txt", "r");
+    ifstream fin(fname, ios::in);
+    // take input from CSV database and store in string table matrix
+    if (fin.is_open()) {
+        while (getline(fin, line)) {
+            inputRow.clear();
 
-    int data[tableRows][tableCols - 1];  // 4x4 for holding number data
+            stringstream str(line);
 
-    for (int i = 0; i < tableRows; i++) {
-        fscanf(filePointerRead, "%d %d %d %d", &data[i][0], &data[i][1],
-               &data[i][2], &data[i][3]);
+            while (getline(str, word, ',')) inputRow.push_back(word);
+            data.push_back(inputRow);
+        }
+    } else {
+        cout << "Could not open the database file. Make sure database.txt is "
+                "present and filed\n";
+        exit(EXIT_FAILURE);
     }
+    fin.close();
 
     for (int i = 0; i < tableRows; i++) {
         int sumRow = 0;
@@ -85,10 +107,23 @@ int main(int argc, char *argv[]) {
             bigBox[i][j] =
                 create_newwin(tableHeight / tableRows, tableWidth / tableCols,
                               startY, startX, false);
-            if (j != tableCols-1) {
-                sumRow += data[i][j];
-                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
-                          data[i][j]);
+
+            if ((i == 0 || j == 0)) {
+                // header and names of table
+                // Info: use s.c_str() for printing the string table data, and
+                // stoi for conversion to int
+                if (j == tableCols - 1) {
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                              "Total");
+                } else {
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                              data[i][j].c_str());
+                }
+
+            } else if (j != tableCols - 1) {
+                sumRow += stoi(data[i][j]);
+                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                          data[i][j].c_str());
             } else {
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
                           sumRow);  // -1 for center allign
@@ -109,7 +144,7 @@ int main(int argc, char *argv[]) {
     wrefresh(bigBox[selectedRow][selectedCol]);
     wattroff(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
-    // my_win = create_newwin(tableHeight/4, tableWidth/5, startY, startX);
+    // my_win = create_newwin(tableHeight/4, tableWidth/5, startY,startX);
 
     while ((ch = getch()) != KEY_F(1)) {
         switch (ch) {
@@ -169,7 +204,9 @@ int main(int argc, char *argv[]) {
                 char inp2 = getch();
                 if (inp2 == '\n') {
                     if (inp >= '0' && inp <= '9') {
-                        data[selectedRow][selectedCol] = inp - '0';
+                        // taking int as str because the data table is stored in
+                        // form of string
+                        data[selectedRow][selectedCol] = inp;
                     }
                 }
                 break;
@@ -192,16 +229,28 @@ int main(int argc, char *argv[]) {
         tempY = (tableHeight + heightOffset / 2) / 2;
         tempX = tableWidth / 2;
 
-        filePointerWrite = fopen("database1.txt", "w");
         for (int i = 0; i < tableRows; i++) {
             int sumRow = 0;
             for (int j = 0; j < tableCols; j++) {
-                bigBox[i][j] = create_newwin(tableHeight / tableRows, tableWidth / tableCols,
-                                             tempY, tempX, false);
-                if (j != tableCols-1) {
-                    sumRow += data[i][j];
-                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%d",
-                              data[i][j]);
+                bigBox[i][j] =
+                    create_newwin(tableHeight / tableRows,
+                                  tableWidth / tableCols, tempY, tempX, false);
+                if ((i == 0 || j == 0)) {
+                    // header and names of table
+                    // Info: use s.c_str() for printing the string table data,
+                    // and stoi for conversion to int
+                    if (j == tableCols - 1) {
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  "Total");
+                    } else {
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  data[i][j].c_str());
+                    }
+
+                } else if (j != tableCols - 1) {
+                    sumRow += stoi(data[i][j]);
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                              data[i][j].c_str());
                 } else {
                     // -1 for two digit center allign
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
@@ -211,12 +260,30 @@ int main(int argc, char *argv[]) {
                 tempX += changeW;
             }
 
-            fprintf(filePointerWrite, "%d %d %d %d\n", data[i][0], data[i][1],
-                    data[i][2], data[i][3]);
+            // fprintf(filePointerWrite, "%d %d %d %d\n", data[i][0],
+            // data[i][1], data[i][2], data[i][3]);
 
             tempY += changeH;
             tempX = tableWidth / 2;
         }
+
+        // save updated data into CSV database
+        ofstream fout(fname, ios::out);
+        if (fout.is_open()) {
+            int i = 0, j = 0;
+            for (i = 0; i < data.size(); i++) {
+                for (j = 0; j < data[i].size() - 1; j++) {
+                    fout << data[i][j] << ",";
+                }
+                fout << data[i][j] << "\n";
+            }
+        } else {
+            cout << "Could not update the database file. Make sure "
+                    "database.txt is "
+                    "present.\n";
+            exit(EXIT_FAILURE);
+        }
+        fout.close();
 
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
 
@@ -230,7 +297,7 @@ int main(int argc, char *argv[]) {
         move(startY + changeH / 2, startX + changeW / 2);
     }
 
-    endwin();           // End curses mode
+    endwin();  // End curses mode
     return 0;
 }
 
