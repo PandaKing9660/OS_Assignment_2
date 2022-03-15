@@ -32,12 +32,13 @@ int main(int argc, char *argv[]) {
     keypad(stdscr, TRUE);
     getmaxyx(stdscr, tableHeight, tableWidth);
 
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+    // init_pair(1, COLOR_WHITE, COLOR_BLACK);
     init_pair(BACKGROUND_PAIR, COLOR_GREEN, COLOR_BLACK);
     init_pair(BIG_BOX_PAIR, COLOR_BLUE, COLOR_BLACK);
     init_pair(SMALL_BOX_PAIR, COLOR_WHITE, COLOR_BLACK);
-    init_pair(SELECTED_BOX_PAIR, COLOR_CYAN, COLOR_CYAN);
+    init_pair(SELECTED_BOX_PAIR, COLOR_CYAN, COLOR_BLACK);
     init_pair(TEXT_PAIR, COLOR_RED, COLOR_WHITE);
+
     // wbkgd(initscr(), COLOR_PAIR(BACKGROUND_PAIR));
 
     tableHeight /= 2;
@@ -309,11 +310,27 @@ int main(int argc, char *argv[]) {
         }
         fout.close();
 
-        wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(1));
-        wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
-        box(bigBox[selectedRow][selectedCol],124,45);
+        wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(4));
+        wbkgd(bigBox[selectedRow][0], COLOR_PAIR(1));
+        wbkgd(bigBox[0][selectedCol], COLOR_PAIR(1));
+
+        // wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
         wrefresh(bigBox[selectedRow][selectedCol]);
+        
+        // wattron(bigBox[selectedRow][0], COLOR_PAIR(SELECTED_BOX_PAIR));
+        wrefresh(bigBox[selectedRow][0]);
+
+        // wattron(bigBox[0][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+        wrefresh(bigBox[0][selectedCol]);
+
+        box(bigBox[selectedRow][selectedCol],124,45);
+
+        
         wattroff(bigBox[selectedRow][selectedCol],
+                 COLOR_PAIR(SELECTED_BOX_PAIR));
+        wattroff(bigBox[selectedRow][0],
+                 COLOR_PAIR(SELECTED_BOX_PAIR));
+        wattroff(bigBox[0][selectedCol],
                  COLOR_PAIR(SELECTED_BOX_PAIR));
 
         move(startY + changeH / 2, startX + changeW / 2);

@@ -1,5 +1,5 @@
 S|F,F1,F2, F3,Dr. Mahe V.
 Amit,7,7,7,7
-Aditya,1,1,6,2
-Anand,7,5,4,8
+Aditya,1,4,9,2
+Anand,7,5,4,9
 Sowmya,4,7,9,9
