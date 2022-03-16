@@ -47,7 +47,8 @@ int main(int argc, char *argv[]) {
     tableHeight = 4 * (tableHeight / 4);
     tableWidth = 5 * (tableWidth / 5);
 
-    mvprintw(1, 1, "Hello Beautiful ;)\n");
+    mvprintw(1, 1, "Hello Sir !! Welcome to the marks sheet of students (out of 9).\n");
+    mvprintw(2, 1, "Have a good day sire ;)\n");
     // addstr("Press F2 for help\n");
 
     refresh();
@@ -167,7 +168,7 @@ int main(int argc, char *argv[]) {
             case KEY_LEFT: {
                 startX -= changeW;
                 selectedCol--;
-                if (startX < tableWidth / 2) {
+                if (selectedCol < 0) {
                     startX += changeW;
                     selectedCol++;
                 }
@@ -176,7 +177,7 @@ int main(int argc, char *argv[]) {
             case KEY_RIGHT: {
                 startX += changeW;
                 selectedCol++;
-                if (startX >= 3 * tableWidth / 2) {
+                if (selectedCol >= tableCols) {
                     startX -= changeW;
                     selectedCol--;
                 }
@@ -185,7 +186,7 @@ int main(int argc, char *argv[]) {
             case KEY_UP: {
                 startY -= changeH;
                 selectedRow--;
-                if (startY < tableHeight / 2) {
+                if (selectedRow < 0) {
                     startY += changeH;
                     selectedRow++;
                 }
@@ -194,14 +195,14 @@ int main(int argc, char *argv[]) {
             case KEY_DOWN: {
                 startY += changeH;
                 selectedRow++;
-                if (startY >= 3 * tableHeight / 2) {
+                if (selectedRow >= tableRows) {
                     startY -= changeH;
                     selectedRow--;
                 }
                 break;
             }
             case (int)'\n': {
-                if (selectedCol == tableCols) {
+                if (selectedCol + 1 == tableCols || selectedCol == 0 || selectedRow == 0) {
                     break;
                 }
                 move(startY + changeH / 2, startX + changeW / 2);
@@ -353,7 +354,7 @@ WINDOW *create_newwin(int height, int width, int startY, int startX,
 
         string label = "STUDENT DATABASE RECORD";
         display_table_header(local_win, 1, 0, width, label);
-        label = "Move | Edit | Exit | Help[F2]";
+        label = "Move [Keys] | Edit [Enter] | Exit [F1] | Help[F2]";
         display_table_header(local_win, 4, 0, width, label);
 
     } else {
