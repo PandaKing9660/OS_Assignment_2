@@ -47,7 +47,9 @@ int main(int argc, char *argv[]) {
     tableHeight = 4 * (tableHeight / 4);
     tableWidth = 5 * (tableWidth / 5);
 
-    mvprintw(1, 1, "Hello Sir !! Welcome to the marks sheet of students (out of 9).\n");
+    mvprintw(
+        1, 1,
+        "Hello Sir !! Welcome to the marks sheet of students (out of 9).\n");
     mvprintw(2, 1, "Have a good day sire ;)\n");
     // addstr("Press F2 for help\n");
 
@@ -78,9 +80,8 @@ int main(int argc, char *argv[]) {
     int changeW = tableWidth / tableCols;
     // Calculating for a center placement of the window
 
-    WINDOW *panel = create_newwin(
-        3, tableWidth + widthOffset + 2,
-        tableHeight + 11, 3, false);
+    WINDOW *panel = create_newwin(3, tableWidth + widthOffset + 2,
+                                  tableHeight + 11, 3, false);
 
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
@@ -148,10 +149,11 @@ int main(int argc, char *argv[]) {
     string panel_col = " Column no: ";
     string panel_edit_on = "     EDIT MODE  ";
     string panel_edit_off = "     NORMAL MODE";
-    string panel_info = panel_row + to_string(selectedRow) + panel_col + to_string(selectedCol) + panel_edit_off;
+    string panel_info = panel_row + to_string(selectedRow) + panel_col +
+                        to_string(selectedCol) + panel_edit_off;
     mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
     wrefresh(panel);
-    
+
     // Calculating for a center placement of the window
     startY = (tableHeight + heightOffset / 2) / 2;
     startX = tableWidth / 2;
@@ -202,7 +204,8 @@ int main(int argc, char *argv[]) {
                 break;
             }
             case (int)'\n': {
-                if (selectedCol + 1 == tableCols || selectedCol == 0 || selectedRow == 0) {
+                if (selectedCol + 1 == tableCols || selectedCol == 0 ||
+                    selectedRow == 0) {
                     break;
                 }
                 move(startY + changeH / 2, startX + changeW / 2);
@@ -212,7 +215,8 @@ int main(int argc, char *argv[]) {
                           changeW / 2, " ");
                 wrefresh(bigBox[selectedRow][selectedCol]);
 
-                panel_info = panel_row + to_string(selectedRow) + panel_col + to_string(selectedCol) + panel_edit_on;
+                panel_info = panel_row + to_string(selectedRow) + panel_col +
+                             to_string(selectedCol) + panel_edit_on;
                 mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
                 wrefresh(panel);
 
@@ -235,11 +239,13 @@ int main(int argc, char *argv[]) {
             }
             case KEY_F(2): {
                 showhelp(stdscr);
+                box(panel,0,0);
                 break;
             }
         }
 
-        panel_info = panel_row + to_string(selectedRow) + panel_col + to_string(selectedCol) + panel_edit_off;
+        panel_info = panel_row + to_string(selectedRow) + panel_col +
+                     to_string(selectedCol) + panel_edit_off;
         mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
         wrefresh(panel);
 
@@ -315,24 +321,22 @@ int main(int argc, char *argv[]) {
         wbkgd(bigBox[selectedRow][0], COLOR_PAIR(1));
         wbkgd(bigBox[0][selectedCol], COLOR_PAIR(1));
 
-        // wattron(bigBox[selectedRow][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
+        // wattron(bigBox[selectedRow][selectedCol],
+        // COLOR_PAIR(SELECTED_BOX_PAIR));
         wrefresh(bigBox[selectedRow][selectedCol]);
-        
+
         // wattron(bigBox[selectedRow][0], COLOR_PAIR(SELECTED_BOX_PAIR));
         wrefresh(bigBox[selectedRow][0]);
 
         // wattron(bigBox[0][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
         wrefresh(bigBox[0][selectedCol]);
 
-        box(bigBox[selectedRow][selectedCol],124,45);
+        box(bigBox[selectedRow][selectedCol], 124, 45);
 
-        
         wattroff(bigBox[selectedRow][selectedCol],
                  COLOR_PAIR(SELECTED_BOX_PAIR));
-        wattroff(bigBox[selectedRow][0],
-                 COLOR_PAIR(SELECTED_BOX_PAIR));
-        wattroff(bigBox[0][selectedCol],
-                 COLOR_PAIR(SELECTED_BOX_PAIR));
+        wattroff(bigBox[selectedRow][0], COLOR_PAIR(SELECTED_BOX_PAIR));
+        wattroff(bigBox[0][selectedCol], COLOR_PAIR(SELECTED_BOX_PAIR));
 
         move(startY + changeH / 2, startX + changeW / 2);
     }
@@ -441,12 +445,15 @@ void showhelp(WINDOW *winOriginal) {
     box(winHelp, (int)'|', (int)'*');
 
     // menu labels
-    string label[] = {"    HELP MENU    ",
-                      "Arrow Keys: Navigation",
-                      "F1: Exit Pgm",
-                      "Enter: Edit Data",
-                      "Enter: Save edited data",
-                      "Press ANY key to exit help"};
+    string label[] = {
+        "    HELP MENU    ",
+        "Arrow Keys: Navigation",
+        "F1: Exit Pgm",
+        "Enter: Edit Data",
+        "Enter: Save edited data",
+        "Press ANY key to exit help",
+        "Developed By: Aditya, Amit, Anand, Sowmya",
+    };
     int size = sizeof(label) / sizeof(label[0]);
     // display menu items on screen
     int i = 0;

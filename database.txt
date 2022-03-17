@@ -1,5 +1,5 @@
-S|F,F1,F2,F3,Dr. Mahe
-Amit,3,1,8,7
-Aditya,9,3,9,9
-Anand,3,9,4,9
-Sowmya,3,1,9,9
+S|F,TA1,TA2,TA3,Head
+Amit,4,6,2,1
+Aditya,9,9,9,9
+Anand,9,3,1,8
+Sowmya,3,5,3,0
