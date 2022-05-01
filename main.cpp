@@ -289,9 +289,15 @@ int main(int argc, char *argv[]) {
                     }
 
                 } else if (j != tableCols - 1) {
+                    fname = "../../osAdmin/data/";
+                    fname += to_string(i);
+                    fname += to_string(j);
+                    string str = "cat " + fname;
+                    const char *command = str.c_str();
+
                     sumRow += stoi(data[i][j]);
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                              data[i][j].c_str());
+                              system(command));
                 } else {
                     // -1 for two digit center allign
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
