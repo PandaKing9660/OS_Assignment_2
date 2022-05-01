@@ -43,12 +43,13 @@ class Utilities {
 
             // Get the data from the process execution
             fgets(data, BUFFSIZE, pf);
-
+           //cout<<data<<endl;
             // the data is now in 'data'
 
             // Error handling
-            if (pclose(pf) != 0)
-                fprintf(stderr, " Error: Failed to close command stream \n");
+           // if (pclose(pf) != 0)
+                // remove print because its messing with ncurses output
+                // fprintf(stderr, " Error: Failed to close command stream \n");
 
             result = data;
             return result;
@@ -195,14 +196,21 @@ int main(int argc, char *argv[]) {
                 fname = "../../osAdmin/data/";
                 fname +=to_string(i);
                 fname += to_string(j);
-                string str = "cat "+fname;
+                string str = "cat "+fname+" 2>&1";
                 const char *command = str.c_str();
-                std::string content = utilities.get_popen(str);
+                std::string content = "err"; 
+                content = utilities.get_popen(str.c_str());
                 sumRow += stoi(data[i][j]);
-            
-                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          content);
-
+                if(content.find("denied") == string::npos)
+                { 
+                   str = "cat "+fname ;
+                   content = utilities.get_popen(str.c_str());
+                   mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                          content.c_str());
+                }
+                else
+                   mvwprintw(bigBox[i][j],changeH / 2, changeW / 2, "%s",
+                           "NA");
                 fin.close();
             } else {
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
