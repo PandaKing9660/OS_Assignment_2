@@ -210,13 +210,13 @@ int main(int argc, char *argv[]) {
                 const char *command = str.c_str();
                 std::string content = "err"; 
                 content = utilities.get_popen(str.c_str());
-                sumRow += stoi(data[i][j]);
                 if(content.find("denied") == string::npos)
-                { 
-                   str = "cat "+fname ;
-                   content = utilities.get_popen(str.c_str());
-                   mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          content.c_str());
+                {
+                    sumRow += stoi(content);
+                    str = "cat " + fname;
+                    content = utilities.get_popen(str.c_str());
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                              content.c_str());
                 }
                 else
                    mvwprintw(bigBox[i][j],changeH / 2, changeW / 2, "%s",
@@ -322,6 +322,15 @@ int main(int argc, char *argv[]) {
                         // taking int as str because the data table is stored in
                         // form of string
                         data[selectedRow][selectedCol] = inp;
+                        fname = "../../osAdmin/data/";
+                        fname += to_string(selectedRow);
+                        fname += to_string(selectedCol);
+                        ofstream fout(fname, ios::out);
+                        if (fout.is_open())
+                        {
+                           fout<<inp;
+                        }
+                        fout.close();
                     }
                 }
                 break;
@@ -386,9 +395,9 @@ int main(int argc, char *argv[]) {
                 const char *command = str.c_str();
                 std::string content = "err";
                 content = utilities.get_popen(str.c_str());
-                sumRow += stoi(data[i][j]);
                 if (content.find("denied") == string::npos)
                 {
+                    sumRow += stoi(content);
                     str = "cat " + fname;
                     content = utilities.get_popen(str.c_str());
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
@@ -417,6 +426,7 @@ int main(int argc, char *argv[]) {
         }
 
         // save updated data into CSV database
+        /*
         fname = "database.txt";
         ofstream fout(fname, ios::out);
         if (fout.is_open()) {
@@ -434,7 +444,8 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
         fout.close();
-
+      */
+     
         wbkgd(bigBox[selectedRow][selectedCol], COLOR_PAIR(4));
         wbkgd(bigBox[selectedRow][0], COLOR_PAIR(1));
         wbkgd(bigBox[0][selectedCol], COLOR_PAIR(1));
