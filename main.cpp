@@ -360,15 +360,16 @@ int main(int argc, char *argv[]) {
                 if (j == tableCols - 1) {
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                               "Total");
-                } else {
-                    if(i==0)
-                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                              names[j-1].c_str());
+                }
+                else
+                {
+                    if (j == 0)
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  names[i - 1].c_str());
                     else
                         mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  educators[i-1].c_str());
+                                  educators[j - 1].c_str());
                 }
-
             } else if (j != tableCols - 1)
             {
                 fname = "../../osAdmin/data/";
