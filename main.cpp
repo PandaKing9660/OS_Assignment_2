@@ -1,9 +1,8 @@
 #include <ncurses.h>
-
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <string>
+#include <string.h>
 #include <vector>
 
 using namespace std;
@@ -13,6 +12,7 @@ using namespace std;
 #define SMALL_BOX_PAIR 3
 #define SELECTED_BOX_PAIR 4
 #define TEXT_PAIR 5
+const int BUFFSIZE = 512;
 
 WINDOW *create_newwin(int height, int width, int startY, int startX,
                       bool headerOn);
@@ -21,68 +21,8 @@ void display_table_header(WINDOW *win, int starty, int startx, int width,
                           string &label);
 void showhelp(WINDOW *winOriginal);
 
-class Utilities {
-    public:
-
-        /**
-         * @brief used for taking in command's output to pipe through popen()
-         * makeing use of IPC. command paramter is used for coomand to excute and get back
-         * output to user.
-         *
-         * @param command
-         * @return string
-         */
-        std::string get_popen(const char *command) {
-            FILE *pf;
-            char data[BUFFSIZE];
-            std::string result;
-
-            // Setup our pipe for reading and execute our command.
-            pf = popen(command, "r");
-
-            // Get the data from the process execution
-            fgets(data, BUFFSIZE, pf);
-
-            // the data is now in 'data'
-
-            // Error handling
-            if (pclose(pf) != 0)
-                fprintf(stderr, " Error: Failed to close command stream \n");
-
-            result = data;
-            return result;
-        }
-
-        /**
-         * @brief used for passing commands to pipe through popen() makeing use of
-         * IPC. command paramter is used for commands to be executed and output passed.
-         *
-         * @param command
-         * @param data
-         */
-        void set_popen(const char *command, const char *data) {
-            FILE *pf;
-            // char data[BUFFSIZE];
-
-            // Setup our pipe for writing to file according to our command.
-            pf = popen(command, "w");
-            // std::cout<<data<<std::endl;
-            // Set the data from the process execution
-            fputs(data, pf);
-
-            // the data is now written to file
-
-            // Error handling
-            if (pclose(pf) != 0)
-                fprintf(stderr, " Error: Failed to close command stream \n");
-
-            return;
-        }
-};
-
 
 int main(int argc, char *argv[]) {
-    Utilities utilities;
     int startX, startY, tableWidth, tableHeight;
     int ch;
     initscr();  // Start curses mode
@@ -191,14 +131,15 @@ int main(int argc, char *argv[]) {
                 }
 
             } else if (j != tableCols - 1) {
-                fname = "../../osAdmin/data";
+                fname = "../../osAdmin/data/";
                 fname +=to_string(i);
                 fname += to_string(j);
-
-                std::string content = utilities.get_popen("cat "+fname);
-                sumRow += stoi(content);
+                string str = "cat "+fname;
+                const char *command = str.c_str();                
+                sumRow += stoi(data[i][j]);
+            
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          content.c_str());
+                          system(command));
 
                 fin.close();
             } else {

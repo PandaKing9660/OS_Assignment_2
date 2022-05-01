@@ -1,5 +1,5 @@
 S|F,TA1,TA2,TA3,Head
-Amit,4,6,2,1
-Aditya,9,9,9,9
-Anand,9,3,1,8
-Sowmya,3,5,3,0
+Amit,4,2,3,1
+Aditya,9,9,9,5
+Anand,9,3,1,9
+Sowmya,3,5,7,9
