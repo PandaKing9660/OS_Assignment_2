@@ -15,6 +15,9 @@ using namespace std;
 #define TEXT_PAIR 5
 const int BUFFSIZE = 512;
 
+const std::string names[100] = {"aditya", "amit", "anand", "sowmya"};
+const std::string educators[100] = {"edu1", "edu2", "edu3", "edu4"};
+
 WINDOW *create_newwin(int height, int width, int startY, int startX,
                       bool headerOn);
 void destroy_win(WINDOW *local_win);
@@ -187,8 +190,15 @@ int main(int argc, char *argv[]) {
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                               "Total");
                 } else {
-                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                              data[i][j].c_str());
+                    if(i==0 && j==0)
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  "S|F";
+                    else if(j==0)
+                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                              names[j].c_str());
+                    else
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  educators[i].c_str());
                 }
 
             } else if (j != tableCols - 1) {
@@ -339,32 +349,45 @@ int main(int argc, char *argv[]) {
                     create_newwin(tableHeight / tableRows,
                                   tableWidth / tableCols, tempY, tempX, false);
                 if ((i == 0 || j == 0)) {
-                    // header and names of table
-                    // Info: use s.c_str() for printing the string table data,
-                    // and stoi for conversion to int
-                    if (j == tableCols - 1) {
-                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  "Total");
-                    } else {
-                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  data[i][j].c_str());
-                    }
-
-                } else if (j != tableCols - 1) {
-                    fname = "../../osAdmin/data/";
-                    fname += to_string(i);
-                    fname += to_string(j);
-                    string str = "cat " + fname;
-                    const char *command = str.c_str();
-
-                    sumRow += stoi(data[i][j]);
-                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                              system(command));
+                // header and names of table
+                // Info: use s.c_str() for printing the string table data, and
+                // stoi for conversion to int
+                if (j == tableCols - 1) {
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                              "Total");
                 } else {
-                    // -1 for two digit center allign
-                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
-                              sumRow);
+                    if(i==0 && j==0)
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  "S|F";
+                    else if(j==0)
+                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                              names[j].c_str());
+                    else
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  educators[i].c_str());
                 }
+
+            } else if (j != tableCols - 1)
+            {
+                fname = "../../osAdmin/data/";
+                fname += to_string(i);
+                fname += to_string(j);
+                string str = "cat " + fname;
+                const char *command = str.c_str();
+                std::string content = utilities.get_popen(str);
+                sumRow += stoi(data[i][j]);
+
+                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                          content);
+
+                fin.close();
+            }
+            else
+            {
+                // -1 for two digit center allign
+                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
+                          sumRow);
+            }
                 wrefresh(bigBox[i][j]);
                 tempX += changeW;
             }
