@@ -21,7 +21,68 @@ void display_table_header(WINDOW *win, int starty, int startx, int width,
                           string &label);
 void showhelp(WINDOW *winOriginal);
 
+class Utilities {
+    public:
+
+        /**
+         * @brief used for taking in command's output to pipe through popen()
+         * makeing use of IPC. command paramter is used for coomand to excute and get back
+         * output to user.
+         *
+         * @param command
+         * @return string
+         */
+        std::string get_popen(const char *command) {
+            FILE *pf;
+            char data[BUFFSIZE];
+            std::string result;
+
+            // Setup our pipe for reading and execute our command.
+            pf = popen(command, "r");
+
+            // Get the data from the process execution
+            fgets(data, BUFFSIZE, pf);
+
+            // the data is now in 'data'
+
+            // Error handling
+            if (pclose(pf) != 0)
+                fprintf(stderr, " Error: Failed to close command stream \n");
+
+            result = data;
+            return result;
+        }
+
+        /**
+         * @brief used for passing commands to pipe through popen() makeing use of
+         * IPC. command paramter is used for commands to be executed and output passed.
+         *
+         * @param command
+         * @param data
+         */
+        void set_popen(const char *command, const char *data) {
+            FILE *pf;
+            // char data[BUFFSIZE];
+
+            // Setup our pipe for writing to file according to our command.
+            pf = popen(command, "w");
+            // std::cout<<data<<std::endl;
+            // Set the data from the process execution
+            fputs(data, pf);
+
+            // the data is now written to file
+
+            // Error handling
+            if (pclose(pf) != 0)
+                fprintf(stderr, " Error: Failed to close command stream \n");
+
+            return;
+        }
+};
+
+
 int main(int argc, char *argv[]) {
+    Utilities utilities;
     int startX, startY, tableWidth, tableHeight;
     int ch;
     initscr();  // Start curses mode
@@ -137,6 +198,8 @@ int main(int argc, char *argv[]) {
                 strcat(fname, line);
                 ifstream fin(fname, ios::in);
                 getline(fin, line);
+
+                std::string user = utilities.get_popen("cat "+fname);
 
                 sumRow += stoi(line);
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
