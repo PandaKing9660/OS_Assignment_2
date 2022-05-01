@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
     string panel_edit_on = "     EDIT MODE  ";
     string panel_edit_off = "     NORMAL MODE";
     string panel_info = panel_row + to_string(selectedRow) + panel_col +
-                        to_string(selectedCol) + panel_edit_off;
+                         to_string(selectedCol) + panel_edit_off;
     mvwprintw(panel, 1, 1, "%s", panel_info.c_str());
     wrefresh(panel);
 
