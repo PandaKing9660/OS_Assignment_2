@@ -191,7 +191,10 @@ int main(int argc, char *argv[]) {
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                               "Total");
                 } else {
-                   if(j==0)
+                   if(i==0 && j ==0)
+                       mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                 "S|F");
+                   else if(j==0)
                      mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                               names[i-1].c_str());
                     else
@@ -363,7 +366,10 @@ int main(int argc, char *argv[]) {
                 }
                 else
                 {
-                    if (j == 0)
+                    if (i == 0 && j == 0)
+                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
+                                  "S|F");
+                    else if (j == 0)
                         mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                                   names[i - 1].c_str());
                     else
@@ -403,6 +409,7 @@ int main(int argc, char *argv[]) {
         }
 
         // save updated data into CSV database
+        fname = "database.txt";
         ofstream fout(fname, ios::out);
         if (fout.is_open()) {
             int i = 0, j = 0;
