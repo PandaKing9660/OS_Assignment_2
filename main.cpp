@@ -191,15 +191,12 @@ int main(int argc, char *argv[]) {
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                               "Total");
                 } else {
-                    if(i==0 && j==0)
-                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  "S|F";
-                    else if(j==0)
+                   if(j==0)
                      mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                              names[j].c_str());
+                              names[i-1].c_str());
                     else
                         mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  educators[i].c_str());
+                                  educators[j-1].c_str());
                 }
 
             } else if (j != tableCols - 1) {
@@ -364,15 +361,12 @@ int main(int argc, char *argv[]) {
                     mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                               "Total");
                 } else {
-                    if(i==0 && j==0)
-                        mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  "S|F";
-                    else if(j==0)
+                    if(i==0)
                      mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                              names[j].c_str());
+                              names[j-1].c_str());
                     else
                         mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
-                                  educators[i].c_str());
+                                  educators[i-1].c_str());
                 }
 
             } else if (j != tableCols - 1)
@@ -382,11 +376,11 @@ int main(int argc, char *argv[]) {
                 fname += to_string(j);
                 string str = "cat " + fname;
                 const char *command = str.c_str();
-                std::string content = utilities.get_popen(str);
+                std::string content = utilities.get_popen(str.c_str());
                 sumRow += stoi(data[i][j]);
 
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          content);
+                          content.c_str());
 
                 fin.close();
             }
