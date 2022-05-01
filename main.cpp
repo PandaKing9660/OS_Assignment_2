@@ -376,19 +376,27 @@ int main(int argc, char *argv[]) {
                         mvwprintw(bigBox[i][j], changeH / 2, changeW / 4, "%s",
                                   educators[j - 1].c_str());
                 }
-            } else if (j != tableCols - 1)
+            }
+            else if (j != tableCols - 1)
             {
                 fname = "../../osAdmin/data/";
                 fname += to_string(i);
                 fname += to_string(j);
-                string str = "cat " + fname;
+                string str = "cat " + fname + " 2>&1";
                 const char *command = str.c_str();
-                std::string content = utilities.get_popen(str.c_str());
+                std::string content = "err";
+                content = utilities.get_popen(str.c_str());
                 sumRow += stoi(data[i][j]);
-
-                mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          content.c_str());
-
+                if (content.find("denied") == string::npos)
+                {
+                    str = "cat " + fname;
+                    content = utilities.get_popen(str.c_str());
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                              content.c_str());
+                }
+                else
+                    mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
+                              "NA");
                 fin.close();
             }
             else
