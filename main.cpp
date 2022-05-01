@@ -130,9 +130,19 @@ int main(int argc, char *argv[]) {
                 }
 
             } else if (j != tableCols - 1) {
-                sumRow += stoi(data[i][j]);
+                fname = "../osAdmin/data";
+                sprintf(line, "%d", i);
+                strcat(fname, line);
+                sprintf(line, "%d", j);
+                strcat(fname, line);
+                ifstream fin(fname, ios::in);
+                getline(fin, line);
+
+                sumRow += stoi(line);
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          data[i][j].c_str());
+                          line.c_str());
+
+                fin.close();
             } else {
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2 - 1, "%d",
                           sumRow);  // -1 for center allign
