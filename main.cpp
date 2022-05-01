@@ -191,19 +191,14 @@ int main(int argc, char *argv[]) {
                 }
 
             } else if (j != tableCols - 1) {
-                fname = "../osAdmin/data";
-                sprintf(line, "%d", i);
-                strcat(fname, line);
-                sprintf(line, "%d", j);
-                strcat(fname, line);
-                ifstream fin(fname, ios::in);
-                getline(fin, line);
+                fname = "../../osAdmin/data";
+                fname +=to_string(i);
+                fname += to_string(j);
 
-                std::string user = utilities.get_popen("cat "+fname);
-
-                sumRow += stoi(line);
+                std::string content = utilities.get_popen("cat "+fname);
+                sumRow += stoi(content);
                 mvwprintw(bigBox[i][j], changeH / 2, changeW / 2, "%s",
-                          line.c_str());
+                          content.c_str());
 
                 fin.close();
             } else {
